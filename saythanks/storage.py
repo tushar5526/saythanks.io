@@ -33,7 +33,6 @@ engine = sqlalchemy.create_engine(os.environ['DATABASE_URL'])
 conn = engine.connect()
 
 
-
 # Storage Models
 # Note: Some of these are a little fancy (send email and such).
 # --------------
@@ -87,10 +86,12 @@ class Note:
         q = 'INSERT INTO notes (body, byline, inboxes_auth_id)' + \
             'VALUES (:body, :byline, :inbox)'
         q = sqlalchemy.text(q)
-        conn.execute(q, body=self.body, byline=self.byline, inbox=self.inbox.auth_id)
+        conn.execute(q, body=self.body, byline=self.byline,
+                     inbox=self.inbox.auth_id)
 
     def archive(self):
-        q = sqlalchemy.text("UPDATE notes SET archived = 't' WHERE uuid = :uuid")
+        q = sqlalchemy.text(
+            "UPDATE notes SET archived = 't' WHERE uuid = :uuid")
         conn.execute(q, uuid=self.uuid)
 
     def notify(self, email_address):
@@ -118,7 +119,8 @@ class Inbox:
     @classmethod
     def store(cls, slug, auth_id, email):
         try:
-            q = sqlalchemy.text('INSERT into inboxes (slug, auth_id,email) VALUES (:slug, :auth_id, :email)')
+            q = sqlalchemy.text(
+                'INSERT into inboxes (slug, auth_id,email) VALUES (:slug, :auth_id, :email)')
             conn.execute(q, slug=slug, auth_id=auth_id, email=email)
 
         except UniqueViolation:
@@ -134,7 +136,8 @@ class Inbox:
 
     @classmethod
     def is_email_enabled(cls, slug):
-        q = sqlalchemy.text('SELECT email_enabled FROM inboxes where slug = :slug')
+        q = sqlalchemy.text(
+            'SELECT email_enabled FROM inboxes where slug = :slug')
         try:
             r = conn.execute(q, slug=slug).fetchall()
             return bool(r[0]['email_enabled'])
@@ -145,12 +148,14 @@ class Inbox:
 
     @classmethod
     def disable_email(cls, slug):
-        q = sqlalchemy.text('update inboxes set email_enabled = false where slug = :slug')
+        q = sqlalchemy.text(
+            'update inboxes set email_enabled = false where slug = :slug')
         conn.execute(q, slug=slug)
 
     @classmethod
     def enable_email(cls, slug):
-        q = sqlalchemy.text('update inboxes set email_enabled = true where slug = :slug')
+        q = sqlalchemy.text(
+            'update inboxes set email_enabled = true where slug = :slug')
         conn.execute(q, slug=slug)
 
     @classmethod
@@ -168,12 +173,14 @@ class Inbox:
 
     @classmethod
     def disable_account(cls, slug):
-        q = sqlalchemy.text('update inboxes set enabled = false where slug = :slug')
+        q = sqlalchemy.text(
+            'update inboxes set enabled = false where slug = :slug')
         conn.execute(q, slug=slug)
 
     @classmethod
     def enable_account(cls, slug):
-        q = sqlalchemy.text('update inboxes set enabled = true where slug = :slug')
+        q = sqlalchemy.text(
+            'update inboxes set enabled = true where slug = :slug')
         conn.execute(q, slug=slug)
 
     def submit_note(self, body, byline):
@@ -197,7 +204,8 @@ class Inbox:
     @property
     def notes(self):
         """Returns a list of notes, ordered reverse-chronologically."""
-        q = sqlalchemy.text("SELECT * from notes where inboxes_auth_id = :auth_id and archived = 'f'")
+        q = sqlalchemy.text(
+            "SELECT * from notes where inboxes_auth_id = :auth_id and archived = 'f'")
         r = conn.execute(q, auth_id=self.auth_id).fetchall()
 
         notes = [
@@ -210,14 +218,16 @@ class Inbox:
         return notes[::-1]
 
     def export(self, file_format):
-        q = sqlalchemy.text("SELECT * from notes where inboxes_auth_id = :auth_id and archived = 'f'")
+        q = sqlalchemy.text(
+            "SELECT * from notes where inboxes_auth_id = :auth_id and archived = 'f'")
         r = conn.execute(q, auth_id=self.auth_id).fetchall()
         return tablib.Dataset(r).export(file_format)
 
     @property
     def archived_notes(self):
         """Returns a list of archived notes, ordered reverse-chronologically."""
-        q = sqlalchemy.text("SELECT * from notes where inboxes_auth_id = :auth_id and archived = 't'")
+        q = sqlalchemy.text(
+            "SELECT * from notes where inboxes_auth_id = :auth_id and archived = 't'")
         r = conn.execute(q, auth_id=self.auth_id).fetchall()
 
         notes = [Note.from_inbox(
