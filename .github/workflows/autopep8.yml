@@ -2,8 +2,10 @@
 name: Python Pep8 Continuous Integration
 
 on:
-  pull_request:
   push:
+    branches:
+    - master
+  pull_request:
     branches:
     - master
 
@@ -13,9 +15,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-      with:
-        # Make sure the actual branch is checked out when running on pull requests
-        ref: ${{ github.head_ref }}
     - uses: creyD/action_autopep8@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
